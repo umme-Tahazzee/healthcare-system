@@ -1,13 +1,23 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import type { IRequestUser } from "./auth.interface";
 import { AuthService } from "./auth.service";
+import { userValidation } from "./auth.validation";
 
-const registerPatient = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
-	const result = await AuthService.registerPatient(payload);
+
+const registerPatient = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+	const payload = userValidation.patientRegistrationZodSchema.safeParse(req.body)
+	if (!payload.success) {
+		let errorMessage = ""
+		payload.error.issues.forEach((issue)=>{
+			errorMessage = errorMessage + ", " + issue.message
+		})
+		throw new Error(errorMessage)
+	}
+
+	const result = await AuthService.registerPatient(payload.data);
 
 	const { accessToken, refreshToken, user, patient } = result;
 

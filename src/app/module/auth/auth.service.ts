@@ -369,7 +369,10 @@ const forgotPassword = async(payload : IForgetPassword) =>{
 }
 
 const resetPassword = async(payload: IResetPassword) =>{
-	const {email} = payload
+	const {email, otp, newPassword} = payload
+	console.log(payload);
+	
+
 	const isUserExists = await prisma.user.findUnique({
 		where : {
 			email 
@@ -392,6 +395,31 @@ const resetPassword = async(payload: IResetPassword) =>{
 		 throw new Error("User has account with google")
 	}
 
+	// const otp = crypto.randomInt(100000,1000000).toString()
+	const key=`forgot-password-otp:${isUserExists.email}`
+
+	const redisOtp = await redisClient.get(key)
+	// console.log(redisOtp, "redisOTp");
+	
+	if(!redisOtp){
+		 throw new Error("Invalid otp")
+	}
+
+	if(redisOtp !== otp){
+		 throw new Error("OTP doesnt match")
+	}
+
+	const hashedPassword = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds))
+    await prisma.user.update({
+		 where : {
+			email : isUserExists?.email
+		 },
+		 data :{
+			password : hashedPassword
+		 }
+	})
+
+	await redisClient.del([key])
 
 }
 

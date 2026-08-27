@@ -10,13 +10,19 @@ import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { jwtUtils } from "../../utils/jwt";
 import type {
+	IForgetPassword,
 	IgoogleLoginPayload,
 	ILoginUserPayload,
 	IRegisterPatientPayload,
 	IRequestUser,
+	IResetPassword,
 } from "./auth.interface";
 import type { TokenPayload } from "google-auth-library";
 import { googleClient } from "../../lib/googleFrom";
+import crypto from 'crypto'
+import httpStatus from "http-status";
+import { redisClient } from "../../lib/redis";
+
 
 const registerPatient = async (payload: IRegisterPatientPayload) => {
 	const { name, password, patient : patientData } = payload;
@@ -326,10 +332,75 @@ const googleLogin = async (payload: IgoogleLoginPayload) => {
 	};
 };
 
+const forgotPassword = async(payload : IForgetPassword) =>{
+	const {email} = payload
+	const isUserExists = await prisma.user.findUnique({
+		where : {
+			email 
+		}
+	})
+
+	
+	if(!isUserExists){
+		throw new Error("User Doest not exist")
+	}
+	if(isUserExists.status === "BLOCKED"){
+		throw new Error("User is blocked")
+	}
+
+	if(isUserExists.isDeleted || isUserExists.status === "DELETED"){
+		throw new Error("User is Deleted")
+	}
+
+	if( isUserExists.authProvider !== "CREDENTIAL"){
+		 throw new Error("User was account with google")
+	}
+
+	const otp = crypto.randomInt(100000,1000000).toString()
+	const key=`forgot-password-otp:${isUserExists.email}`
+
+	await redisClient.set(key, otp, {
+		 expiration:{
+			 type : "EX",
+			 value : 5 * 60
+		 }
+	})
+
+}
+
+const resetPassword = async(payload: IResetPassword) =>{
+	const {email} = payload
+	const isUserExists = await prisma.user.findUnique({
+		where : {
+			email 
+		}
+	})
+
+	
+	if(!isUserExists){
+		throw new Error("User Doest not exist")
+	}
+	if(isUserExists.status === "BLOCKED"){
+		throw new Error("User is blocked")
+	}
+
+	if(isUserExists.isDeleted || isUserExists.status === "DELETED"){
+		throw new Error("User is Deleted")
+	}
+
+	if( isUserExists.authProvider !== "CREDENTIAL"){
+		 throw new Error("User has account with google")
+	}
+
+
+}
+
 export const AuthService = {
 	registerPatient,
 	loginUser,
 	getMe,
 	refreshToken,
 	googleLogin,
+	forgotPassword, 
+	resetPassword
 };

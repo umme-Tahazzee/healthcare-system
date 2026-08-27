@@ -7,7 +7,7 @@ import config from "./app/config";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { AuthRoutes } from "./app/module/auth/auth.route";
-import { redisClient } from "./app/lib/redis";
+import crypto from "crypto"
 
 
 const app: Application = express();
@@ -31,23 +31,6 @@ app.use(cookieParser());
 
 
 app.use("/api/v1/auth", AuthRoutes);
-
-app.get('/test', async(req:Request, res:Response)=>{
-	  try {
-		await redisClient.set("forget-password:paitient@gmail.com", '123456', {
-			expiration: {
-				type: "EX",
-				value: 60
-			}
-		})
-
-	  } catch (error) {
-		console.log("redis error", error);
-		
-	  }
-})
-
-
 
 
 // Basic route

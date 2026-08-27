@@ -8,16 +8,9 @@ import { userValidation } from "./auth.validation";
 
 
 const registerPatient = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-	const payload = userValidation.patientRegistrationZodSchema.safeParse(req.body)
-	if (!payload.success) {
-		let errorMessage = ""
-		payload.error.issues.forEach((issue)=>{
-			errorMessage = errorMessage + ", " + issue.message
-		})
-		throw new Error(errorMessage)
-	}
-
-	const result = await AuthService.registerPatient(payload.data);
+	const payload = req.body
+	
+	const result = await AuthService.registerPatient(payload);
 
 	const { accessToken, refreshToken, user, patient } = result;
 
@@ -150,10 +143,40 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+	const payload = req.body;
+	const result = await AuthService.forgotPassword(payload);
+
+	
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "New tokens generated successfully",
+		data: {},
+	});
+})
+
+
+
+
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+	const payload = req.body
+	await AuthService.forgotPassword(payload)
+		sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: `OTP sent to email : ${payload}`,
+		data: null
+	});
+})
+
 export const AuthController = {
 	registerPatient,
 	loginUser,
 	getMe,
 	refreshToken,
 	googleLogin,
+	forgotPassword,
+	resetPassword
 };

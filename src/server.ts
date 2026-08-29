@@ -1,5 +1,6 @@
 import app from "./app";
 import config from "./app/config";
+import { transporter } from "./app/lib/nodemailer";
 import { prisma } from "./app/lib/prisma";
 import { redisClient } from "./app/lib/redis";
 import {
@@ -18,6 +19,10 @@ const main = async () => {
 		app.listen(config.port, () => {
 			console.log(`Server running on port ${config.port}`);
 		});
+
+		await transporter.verify()
+		console.log("nodemailer connected successfully");
+		
 
 		await seedSuperAdmin();
 		await seedTeasterAdmin();

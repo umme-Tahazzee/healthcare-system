@@ -60,7 +60,11 @@ const verfityPatientEmail = catchAsync(async (req: Request, res: Response, next:
 		statusCode: httpStatus.CREATED,
 		success: true,
 		message: "Verfication OTP send",
-		data: null
+		data: {
+			 accessToken,
+			 refreshToken,
+			 result
+		}
 	});
 });
 

@@ -113,11 +113,11 @@ const verifyPatientEmail = async (payload: IVerifyEmailPayload) => {
 
 
 	const storedOtp = await redisClient.get(otpKey);
-	
-     console.log("otp" , otp);
-     console.log("storedOpt" , storedOtp);
 
-	 
+	console.log("otp", otp);
+	console.log("storedOpt", storedOtp);
+
+
 
 	if (!storedOtp) {
 		throw new Error("OTP expired or invalid");
@@ -159,8 +159,23 @@ const verifyPatientEmail = async (payload: IVerifyEmailPayload) => {
 		include: { patient: true },
 	});
 
-	
+
 	await redisClient.del(patientRegistrationKey);
+
+	const templatePath = path.join(process.cwd(), 'src/app/templates/patient-welcome-email.ejs')
+	const html = await ejs.renderFile(templatePath, {
+		name: createdUser.name,
+		email,
+
+	})
+
+	await transporter.sendMail({
+		from: config.email_sender,
+		to: email,
+		subject: "Welcome To healthcare system",
+		html
+
+	})
 
 	const { patient, ...user } = createdUser;
 
@@ -182,6 +197,8 @@ const verifyPatientEmail = async (payload: IVerifyEmailPayload) => {
 		config.jwt_refresh_secret,
 		config.jwt_refresh_expires_in as SignOptions,
 	);
+
+
 
 	return {
 		user,
@@ -403,6 +420,22 @@ const googleLogin = async (payload: IgoogleLoginPayload) => {
 					},
 				},
 			});
+
+			const templatePath = path.join(process.cwd(), 'src/app/templates/patient-welcome-email.ejs')
+			const html = await ejs.renderFile(templatePath, {
+				name: user.name,
+				email: user.email,
+
+			})
+
+			await transporter.sendMail({
+				from: config.email_sender,
+				to: user.email,
+				subject: "Welcome To healthcare system credential",
+				html
+
+			})
+
 		}
 	}
 

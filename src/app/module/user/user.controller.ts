@@ -13,12 +13,12 @@ const uploadProfileImage = catchAsync(async (req: Request, res: Response, next: 
    }
 
    const userId = req.user?.userId 
-	await UserService.uploadProfileImage(req.file?.buffer, userId!)
+	const result = await UserService.uploadProfileImage(req.file?.buffer, userId!)
 	sendResponse(res, {
 		statusCode: httpStatus.CREATED,
 		success: true,
 		message: "Image Upload successfully",
-		data: null
+		data: result
 	});
 });
 

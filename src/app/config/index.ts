@@ -36,7 +36,6 @@ export default {
 	smtp_password:process.env.SMTP_PASSWORD!,
 	email_sender:process.env.EMAIL_SENDER!,
 
-	
 	cloudinary_name:process.env.CLOUDINARY_NAME!,
 	cloudinary_api_key:process.env.CLOUDINARY_API_KEY!,
 	cloudinary_api_secret:process.env.CLOUDINARY_API_SECRET!,
@@ -44,12 +43,9 @@ export default {
 	bkash_base_url:process.env.BKASH_BASE_URL!,
 	bkash_username:process.env.BKASH_USERNAME!,
 	bkash_password:process.env.BKASH_PASSWORD!,
-	bkash_api_key:process.env.BKASH_APP_KEY!,
+	bkash_app_key:process.env.BKASH_APP_KEY!,
 	bkash_app_secret:process.env.BKASH_APP_SECRET!,
 
-
-
-	
-
+	bkash_callback_url:process.env.BKASH_CALLBACK_URL!
 
 };

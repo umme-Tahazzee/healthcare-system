@@ -8,15 +8,13 @@ const bookAppoiment = async () => {
 		throw new Error("No Bkash Access Token Found");
 	}
 
-    console.log(bkashIdToken);
-    
 	const bkashCreatePaymentResponse = await fetch(
 		`${config.bkash_base_url}/tokenized/checkout/create`,
 		{
 			method: "POST",
 			headers: {
 				"Content-Type": "Application/json",
-				Accept: "application/json",
+				Accept:  "Application/json",
 				Authorization: bkashIdToken,
 				"X-App-Key": config.bkash_app_key,
 			},
@@ -29,56 +27,81 @@ const bookAppoiment = async () => {
 				amount: "1200",
 				currency: "BDT",
 				intent: "sale",
-				merchantInvoiceNumber: "Inv0124",
+				merchantInvoiceNumber: "Inv01247",
 			}),
 		},
 	);
 
-    const bkashCreatePaymentResult = await bkashCreatePaymentResponse.json()
-    console.log(bkashCreatePaymentResult);
-    
+	const bkashCreatePaymentResult = await bkashCreatePaymentResponse.json();
+	
 
-    return bkashCreatePaymentResult
+	return bkashCreatePaymentResult;
 };
 
-const bookAppoinmentCallback = async(query: Record<string, any>) => {
-    
-    const paymentId = query.paymentID
-    if(!paymentId){
-         throw new Error("payment id missing")
-    }
-    const status = query.httpStatus
-    if(!status){
-         throw new Error("Payment status is missing")
-    }
+const bookAppoinmentCallback = async (query: Record<string, any>) => {
+	const paymentId = query.paymentID;
+	if (!paymentId) {
+		throw new Error("payment id missing");
+	}
+	const status = query.status;
+	if (!status) {
+		throw new Error("Payment status is missing");
+	}
 
-    const bkashIdToken = await getBkashIdToken();
-    
-    if (!bkashIdToken) {
+	const bkashIdToken = await getBkashIdToken();
+
+	if (!bkashIdToken) {
 		throw new Error("No Bkash Access Token Found");
 	}
-    
-    
-    const executedPaymentResponse = await fetch(`${config}/tokenized/checkout/execute`,{
-         method : "POST",
-         headers : {
-               "Content-Type": "Application/json",
-				Accept: "application/json",
+
+	const executedPaymentResponse = await fetch(
+		`${config.bkash_base_url}/tokenized/checkout/execute`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type":  "Application/json",
+				Accept:  "Application/json",
 				Authorization: bkashIdToken,
 				"X-App-Key": config.bkash_app_key,
-         },
-         body: JSON.stringify({
-            paymentId : paymentId
-         })
-    })
+			},
+			body: JSON.stringify({
+				paymentID: paymentId,
+			}),
+		},
+	);
 
-    const excutePaymentResult = await executedPaymentResponse.json()
-    
-    return excutePaymentResult
-}
+	
+
+	const excutePaymentResult = await executedPaymentResponse.json();
+
+	if (status === "success") {
+		return {
+			excutePaymentResult,
+			redirectUrl: `${config.frontend_url}/dashboard/my-appoinments?status=success`,
+		};
+	}
+	if (status === "failure") {
+		return {
+			excutePaymentResult,
+			redirectUrl: `${config.frontend_url}/dashboard/my-appoinments?status=failure`,
+		};
+	}
+
+	if (status === "cancel") {
+		return {
+			excutePaymentResult,
+			redirectUrl: `${config.frontend_url}/dashboard/my-appoinments?status=cancel`,
+		};
+	}
+
+	return {
+		excutePaymentResult,
+		redirectUrl: `${config.frontend_url}/dashboard/my-appoinments`,
+	};
+
+};
 
 export const AppoimentService = {
-	
-    bookAppoiment ,
-    bookAppoinmentCallback
-}
+	bookAppoiment,
+	bookAppoinmentCallback,
+};

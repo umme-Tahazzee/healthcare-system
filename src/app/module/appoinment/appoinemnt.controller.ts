@@ -6,8 +6,13 @@ import { AppoimentService } from "./appoinment.service";
 
 const bookAppoiment = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const result = await AppoimentService.bookAppoiment();
-
+		const payload = req.body
+		const user = req.user!
+		
+		
+		const result = await AppoimentService.bookAppoiment(payload, user)
+		
+		
 		sendResponse(res, {
 			statusCode: httpStatus.CREATED,
 			success: true,

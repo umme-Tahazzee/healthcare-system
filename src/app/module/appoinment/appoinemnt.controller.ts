@@ -6,13 +6,11 @@ import { AppoimentService } from "./appoinment.service";
 
 const bookAppoiment = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		const payload = req.body
-		const user = req.user!
-		
-		
-		const result = await AppoimentService.bookAppoiment(payload, user)
-		
-		
+		const payload = req.body;
+		const user = req.user!;
+
+		const result = await AppoimentService.bookAppoiment(payload, user);
+
 		sendResponse(res, {
 			statusCode: httpStatus.CREATED,
 			success: true,
@@ -24,20 +22,15 @@ const bookAppoiment = catchAsync(
 
 const bookAppoimentCallBack = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		
-		const {excutePaymentResult, redirectUrl} = await AppoimentService.bookAppoinmentCallback(req.query);
-	
-		res.redirect(redirectUrl)
-		console.log(excutePaymentResult);
-		
-		
+		const { redirectUrl } = await AppoimentService.bookAppoinmentCallback(
+			req.query,
+		);
+
+		res.redirect(redirectUrl);
 	},
 );
 
-
-
-
 export const AppoimentController = {
 	bookAppoiment,
-    bookAppoimentCallBack
+	bookAppoimentCallBack,
 };

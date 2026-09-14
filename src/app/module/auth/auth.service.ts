@@ -196,10 +196,13 @@ const verifyPatientEmail = async (payload: IVerifyEmailPayload) => {
 const loginUser = async (payload: ILoginUserPayload) => {
 	const { password } = payload;
 	const email = payload.email.trim().toLowerCase();
-
+		
 	const user = await prisma.user.findUnique({
 		where: { email },
 	});
+
+	
+
 
 	if (!user) {
 		throw new Error("User not found");

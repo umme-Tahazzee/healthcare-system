@@ -9,7 +9,6 @@ import { prisma } from "../../lib/prisma";
 import { RequestUser } from "../../middleware/checkAuth";
 
 
-
 const bookAppoiment = async (payload: any, user: RequestUser) => {
 	const transectionResult = await prisma.$transaction(async (tx) => {
 		const appointment = await prisma.appoinment.create({
@@ -309,7 +308,7 @@ const cancelAppointment = async (payload: any) => {
 			trxID: existingAppoinment.payment?.bkashTrxId,
 			amount: existingAppoinment.payment?.amount?.toString(),
 			sku: "Appointment cancellation",
-			reason: "User patient cancel the appoinment",
+			reason: 'User patient cancel the appoinment'
 		};
 
 		const bkashRefundPaymentResponse = await fetch(
@@ -327,8 +326,8 @@ const cancelAppointment = async (payload: any) => {
 		);
 
 		const bkashRefundPaymentResult = await bkashRefundPaymentResponse.json();
-		console.log("bKash refund response:", bkashRefundPaymentResult);
-		console.log("completedTime raw:", bkashRefundPaymentResult.completedTime);
+		// console.log("bKash refund response:", bkashRefundPaymentResult);
+		// console.log("completedTime raw:", bkashRefundPaymentResult.completedTime);
 
 		if (
 			!bkashRefundPaymentResponse.ok ||
@@ -369,6 +368,7 @@ const cancelAppointment = async (payload: any) => {
 
 	return transectionResult;
 };
+
 export const AppoimentService = {
 	bookAppoiment,
 	bookAppoinmentCallback,

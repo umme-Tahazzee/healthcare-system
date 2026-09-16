@@ -23,7 +23,7 @@ enum AuthProvider {
 }
 
 
-enum AppoinmentStatus{
+enum AppoinmentStatus {
   PENDING
   CONFRIMED
   CANCELLED
@@ -32,10 +32,17 @@ enum AppoinmentStatus{
 
 }
 
-enum PaymentStatus{
+enum PaymentStatus {
    UNPAID
    PAID
    FAILED
    CANCELLED
    REFUNDED
+}
+
+
+enum DoctorVerificationStatus {
+      PENDING
+      APPROVED
+      REJECTED
 }

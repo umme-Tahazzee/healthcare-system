@@ -12,6 +12,7 @@ import { UsersRoutes } from "./app/module/user/user.route";
 import { getBkashIdToken } from "./app/lib/bkash";
 import { success } from "zod";
 import { AppoinmentRoutes } from "./app/module/appoinment/appoinment.route";
+import { DoctorRoutes } from "./app/module/doctor/doctor.route";
 
 
 const app: Application = express();
@@ -34,6 +35,7 @@ app.use(cookieParser());
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/user", UsersRoutes);
 app.use("/api/v1/appoinment", AppoinmentRoutes);
+app.use("/api/v1/doctor", DoctorRoutes);
 
 
 

@@ -1,0 +1,31 @@
+model Doctor {
+  id                String  @id @default(uuid())
+  name              String
+  email             String  @unique
+  address           String?
+  specialization    String
+  licenseNumber     String  @unique
+  qualifications    String
+  experienceYear    Int
+  bio               String?
+  consultationFee   Decimal? @db.Decimal(10,2)
+  
+  resume            String?
+  resumePublicId    String?
+  additionalFiles   Json? //store {url:"......", publicId: "........."}
+
+  verificationStatus DoctorVerificationStatus @default(PENDING)
+  rejectionReason   String?
+  reviewBy          String?
+  reviewedAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  
+  @@index([email], name: "idx_doctor_email")
+  @@map("doctors")
+}

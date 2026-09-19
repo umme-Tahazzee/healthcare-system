@@ -12,7 +12,7 @@ router.post(
   "/apply-as-doctor",
   upload.fields([
     { name: "resume", maxCount: 1 },
-    { name: "aditionalfiles", maxCount: 4 },
+    { name: "additionalFiles", maxCount: 4 },
   ]),
   DoctorController.applyAsDoctor
 );

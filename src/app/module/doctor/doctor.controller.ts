@@ -8,10 +8,11 @@ const applyAsDoctor = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-		const resume = files?.resume?.[0]; // single file
-		const additionalFiles = files?.additionalfiles || []; // array of files
+		const resume = files?.resume?.[0];
+		const additionalFiles = files?.additionalFiles ?? [];
+		const data = JSON.parse(req.body.data);
 
-		const data = req.body.data;
+
 
 		console.log({ resume, additionalFiles, data });
 

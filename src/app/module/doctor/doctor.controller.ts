@@ -12,10 +12,6 @@ const applyAsDoctor = catchAsync(
 		const additionalFiles = files?.additionalFiles ?? [];
 		const data = JSON.parse(req.body.data);
 
-
-
-		console.log({ resume, additionalFiles, data });
-
 		const result = await DoctorServices.applyAsDoctor(
 			data,
 			resume,
@@ -30,6 +26,37 @@ const applyAsDoctor = catchAsync(
 	},
 );
 
+const verifyDoctorEmail = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const payload = req.body
+		const result = await DoctorServices.verifyDoctorEmail(payload);
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Verified Doctor successfully",
+			data: result,
+		});
+	},
+);
+
+const approvedDoctor = catchAsync(async (req: Request, res: Response) => {
+	const result = await DoctorServices.approvedDoctor(req.body, req.user!);
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Doctor application reviewed successfully",
+		data: result,
+	});
+});
+
+
+
+
+
+
 export const DoctorController = {
 	applyAsDoctor,
+	verifyDoctorEmail,
+	approvedDoctor,
+	
 };

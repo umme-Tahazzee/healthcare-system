@@ -33,6 +33,10 @@ router.post(
 );
 
 
+router.get('/all-doctors',
+  auth(Role.ADMIN, Role.SUPER_ADMIN), 
+  DoctorController.getAllDoctors)
+
 
 
 

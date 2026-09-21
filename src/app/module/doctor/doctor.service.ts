@@ -252,7 +252,7 @@ const approvedDoctor = async(payload: IApprovedDoctorPayload, reviewer : Request
 			rejectionReason:
 			verificationStatus === DoctorVerificationStatus.REJECTED ? rejectionReason : null,
 			reviewBy : reviewer.userId,
-			// reviewedAt: new Date(),
+			reviewedAt: new Date(),
 
 		  }
 	})
@@ -286,12 +286,18 @@ const approvedDoctor = async(payload: IApprovedDoctorPayload, reviewer : Request
 
 }
 
+const gellAllDoctors = async() => {
+	const result = await prisma.doctor.findMany({})
 
+	return result
+
+}
 
 
 export const DoctorServices = {
 	applyAsDoctor,
 	verifyDoctorEmail,
 	approvedDoctor,
+	gellAllDoctors
 	
 };

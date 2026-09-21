@@ -49,7 +49,17 @@ const approvedDoctor = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
+const getAllDoctors = catchAsync(async (req: Request, res: Response) => {
+	const result = await DoctorServices.gellAllDoctors();
+	console.log(result);
+	
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Retrived all doctors successfully",
+		data: result,
+	});
+});
 
 
 
@@ -58,5 +68,6 @@ export const DoctorController = {
 	applyAsDoctor,
 	verifyDoctorEmail,
 	approvedDoctor,
+	getAllDoctors
 	
 };

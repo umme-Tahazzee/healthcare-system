@@ -50,14 +50,16 @@ const approvedDoctor = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllDoctors = catchAsync(async (req: Request, res: Response) => {
-	const result = await DoctorServices.gellAllDoctors();
-	console.log(result);
+	const query = req.query
+	const {data, meta} = await DoctorServices.gellAllDoctors(query);
+	
 	
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,
 		message: "Retrived all doctors successfully",
-		data: result,
+		data: data,
+		meta:meta
 	});
 });
 

@@ -373,7 +373,7 @@ const gellAllDoctors = async (query: IQuery) => {
 		});
 	}
 
-	if (query.verficationStatus) {
+	if (query.verificationStatus) {
 		andConditions.push({
 			verificationStatus: query.verificationStatus as DoctorVerificationStatus,
 		});
@@ -415,7 +415,7 @@ const gellAllDoctors = async (query: IQuery) => {
 			 page: page,
 			 limit: limit,
 			 total: totalDoctorCount,
-			 totalPage : Math.ceil(totalDoctorCount/limit)
+			 totalPages : Math.ceil(totalDoctorCount/limit)
 
 		 }
 	}

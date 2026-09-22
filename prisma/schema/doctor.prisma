@@ -8,7 +8,7 @@ model Doctor {
   specialization  String
   licenseNumber   String @unique
   qualifications String
-  experienceYears Int
+  experienceYears Int? @default(0)
 
   bio             String?
   consultationFee Decimal? @db.Decimal(10, 2)

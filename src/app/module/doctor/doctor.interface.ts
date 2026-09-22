@@ -28,3 +28,15 @@ export interface IApprovedDoctorPayload {
      rejectionReason?: string
 	 isDeleted ?: boolean
 }
+
+
+export interface IQuery{
+	 searchItem?: string
+	 page?: string
+	 limit?: string
+	 sortOrder?:string
+	 sortOrderby?:string
+
+	 //any other filter fileds can be added here
+	 [key:string]:any
+}

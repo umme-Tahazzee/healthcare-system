@@ -1,21 +1,31 @@
 // biome-ignore assist/source/organizeImports: <explanation>
 import { prisma } from "../../lib/prisma";
-import { DoctorVerificationStatus, Role, UserStatus } from "../../../generated/prisma/enums";
+import {
+	DoctorVerificationStatus,
+	Role,
+	UserStatus,
+} from "../../../generated/prisma/enums";
 import config from "../../config";
 import { UploadApiResponse } from "cloudinary";
 import { cloudinary } from "../../lib/cloudinary";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { redisClient } from "../../lib/redis";
-import path from "path";
+import path, { parse } from "path";
 import { transporter } from "../../lib/nodemailer";
 import ejs from "ejs";
 
-import { IApplyAsDoctorPayload, IApprovedDoctorPayload, IDoctorVerifyEmailPayload } from "./doctor.interface";
+import {
+	IApplyAsDoctorPayload,
+	IApprovedDoctorPayload,
+	IDoctorVerifyEmailPayload,
+	IQuery,
+} from "./doctor.interface";
 import { RequestUser } from "../../middleware/checkAuth";
+import { Prisma } from "../../../generated/prisma/client";
 
-const getDoctorOtpKey = (email: string) => `doctor-application:otp:${email.trim().toLowerCase()}`;
-
+const getDoctorOtpKey = (email: string) =>
+	`doctor-application:otp:${email.trim().toLowerCase()}`;
 
 const applyAsDoctor = async (
 	payload: IApplyAsDoctorPayload,
@@ -97,7 +107,7 @@ const applyAsDoctor = async (
 					email: user.email,
 					specialization: doctor.specialization,
 					qualifications: doctor.qualifications,
-					experienceYear: doctor.experienceYear,
+					experienceYears: doctor.experienceYear,
 					licenseNumber: doctor.licenseNumber,
 					address: doctor.address,
 					bio: doctor.bio,
@@ -116,8 +126,7 @@ const applyAsDoctor = async (
 
 	const expirationSeconds = 60 * 60;
 	const otpKey = getDoctorOtpKey(payload.user.email);
-	const otpValue = crypto.randomInt(100000, 1000000).toString()
-
+	const otpValue = crypto.randomInt(100000, 1000000).toString();
 
 	await redisClient.set(otpKey, otpValue, {
 		expiration: {
@@ -156,14 +165,12 @@ const verifyDoctorEmail = async (payload: IDoctorVerifyEmailPayload) => {
 	const email = payload.email.trim().toLowerCase();
 
 	const isUserExists = await prisma.user.findUnique({
-		where: 
-		{ 
-		    email, 
-			role : Role.DOCTOR
-		 },
+		where: {
+			email,
+			role: Role.DOCTOR,
+		},
 	});
-	
-	
+
 	if (isUserExists?.emailVerified) {
 		throw new Error("Email already verfify");
 	}
@@ -176,7 +183,7 @@ const verifyDoctorEmail = async (payload: IDoctorVerifyEmailPayload) => {
 		throw new Error("User is Deleted");
 	}
 
-	const otpKey = getDoctorOtpKey(email)
+	const otpKey = getDoctorOtpKey(email);
 	const storedOtp = await redisClient.get(otpKey);
 
 	if (!storedOtp) {
@@ -200,104 +207,223 @@ const verifyDoctorEmail = async (payload: IDoctorVerifyEmailPayload) => {
 	await redisClient.del(otpKey);
 
 	const verfiedUser = await prisma.user.update({
-		where :{
-			 id: isUserExists?.id
+		where: {
+			id: isUserExists?.id,
 		},
-		data:{
-			 emailVerified : true
+		data: {
+			emailVerified: true,
 		},
-		omit:{
-			password: true
+		omit: {
+			password: true,
 		},
-		include:{
-			 doctor: true
-		}
-	})
+		include: {
+			doctor: true,
+		},
+	});
 	await redisClient.del(otpKey);
-	return verfiedUser
+	return verfiedUser;
 };
 
-const approvedDoctor = async(payload: IApprovedDoctorPayload, reviewer : RequestUser) =>{
-	const {doctorId, verificationStatus, rejectionReason} = payload
+const approvedDoctor = async (
+	payload: IApprovedDoctorPayload,
+	reviewer: RequestUser,
+) => {
+	const { doctorId, verificationStatus, rejectionReason } = payload;
 	const existingDoctor = await prisma.doctor.findUnique({
-		  where : {id: doctorId},
-		  include:{user: true}
-	})
+		where: { id: doctorId },
+		include: { user: true },
+	});
 
-	if(!existingDoctor){
-		 throw new Error("Doctor aplication not found")
+	if (!existingDoctor) {
+		throw new Error("Doctor aplication not found");
 	}
-
 
 	if (existingDoctor.user.isDeleted) {
 		throw new Error("User is Deleted");
 	}
 
-	if(!existingDoctor.user.emailVerified){
-		throw new Error("Doctor Email is not verified. Application cannt be reviewd")
+	if (!existingDoctor.user.emailVerified) {
+		throw new Error(
+			"Doctor Email is not verified. Application cannt be reviewd",
+		);
 	}
 
-	if(existingDoctor.verificationStatus !== DoctorVerificationStatus.PENDING){
-		throw new Error(`Doctor verification status is already ${existingDoctor.verificationStatus.toLocaleLowerCase()}`)
+	if (existingDoctor.verificationStatus !== DoctorVerificationStatus.PENDING) {
+		throw new Error(
+			`Doctor verification status is already ${existingDoctor.verificationStatus.toLocaleLowerCase()}`,
+		);
 	}
 
-	if(verificationStatus === DoctorVerificationStatus.REJECTED && !rejectionReason){
-		 throw new Error("Rejecting Reason is required when rejecting a doctor application")
+	if (
+		verificationStatus === DoctorVerificationStatus.REJECTED &&
+		!rejectionReason
+	) {
+		throw new Error(
+			"Rejecting Reason is required when rejecting a doctor application",
+		);
 	}
 
 	const updateDoctor = await prisma.doctor.update({
-		 where : {id: doctorId},
-		 data : {
+		where: { id: doctorId },
+		data: {
 			verificationStatus,
 			rejectionReason:
-			verificationStatus === DoctorVerificationStatus.REJECTED ? rejectionReason : null,
-			reviewBy : reviewer.userId,
+				verificationStatus === DoctorVerificationStatus.REJECTED
+					? rejectionReason
+					: null,
+			reviewBy: reviewer.userId,
 			reviewedAt: new Date(),
+		},
+	});
 
-		  }
-	})
-
-	const isApproved = verificationStatus === DoctorVerificationStatus.APPROVED
+	const isApproved = verificationStatus === DoctorVerificationStatus.APPROVED;
 	const templatePath = path.join(
 		process.cwd(),
-		`src/app/templates/${isApproved ?
-			'doctor-application-approved.ejs':
-			'doctor-application-rejected.ejs'
-		}`
-	)
+		`src/app/templates/${
+			isApproved
+				? "doctor-application-approved.ejs"
+				: "doctor-application-rejected.ejs"
+		}`,
+	);
 
 	const templateData = {
-		 name: updateDoctor.name,
-		 reason : updateDoctor.rejectionReason
+		name: updateDoctor.name,
+		reason: updateDoctor.rejectionReason,
+	};
+	const html = await ejs.renderFile(templatePath, templateData);
+
+	await transporter.sendMail({
+		from: config.email_sender,
+		to: updateDoctor.email,
+		subject: isApproved
+			? "Your Doctor Application Has been approved"
+			: "Your doctor application has been Rejected",
+		html,
+	});
+
+	return updateDoctor;
+};
+
+const gellAllDoctors = async (query: IQuery) => {
+	const limit = query.limit ? Number(query.limit) : 10;
+	const page = query.page ? Number(query.page) : 1;
+	const skip = (page - 1) * limit;
+	const sortBy = query.sortBy ? query.sortBy : "createdAt";
+	const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+	const andConditions: Prisma.DoctorWhereInput[] = [];
+
+	if (query.searchItem) {
+		andConditions.push({
+			OR: [
+				{ name: { contains: query.searchItem, mode: "insensitive" } },
+				{ email: { contains: query.searchItem, mode: "insensitive" } },
+				{
+					specialization: {
+						contains: query.searchItem,
+						mode: "insensitive",
+					},
+				},
+				{
+					licenseNumber: {
+						contains: query.searchItem,
+						mode: "insensitive",
+					},
+				},
+			],
+		});
 	}
-	const html = await ejs.renderFile(templatePath, templateData)
 
-   await transporter.sendMail({
-	 from : config.email_sender,
-	 to: updateDoctor.email,
-	 subject : isApproved ?
-	            "Your Doctor Application Has been approved"
-				: "Your doctor application has been Rejected",
-				html
-   })
+	if (query.specialization) {
+		andConditions.push({
+			specialization: { equals: query.specialization, mode: "insensitive" },
+		});
+	}
 
-   return updateDoctor
+	if (query.email) {
+		andConditions.push({
+			email: { contains: query.email, mode: "insensitive" },
+		});
+	}
 
+	if (query.name) {
+		andConditions.push({
+			name: { contains: query.name, mode: "insensitive" },
+		});
+	}
 
-}
+	if (query.licenseNumber) {
+		andConditions.push({
+			licenseNumber: { contains: query.licenseNumber, mode: "insensitive" },
+		});
+	}
 
-const gellAllDoctors = async() => {
-	const result = await prisma.doctor.findMany({})
+	if (query.qualifications) {
+		andConditions.push({
+			qualifications: { contains: query.qualifications, mode: "insensitive" },
+		});
+	}
 
-	return result
+	if (query.minExperience || query.maxExperience) {
+		andConditions.push({
+			experienceYears: {
+				...(query.minExperience && { gte: Number(query.minExperience) }),
+				...(query.maxExperience && { lte: Number(query.maxExperience) }),
+			},
+		});
+	}
 
-}
+	if (query.verficationStatus) {
+		andConditions.push({
+			verificationStatus: query.verificationStatus as DoctorVerificationStatus,
+		});
+	}
 
+	
+	andConditions.push({
+		   isDeleted : false
+	})
+
+	const allDoctor = await prisma.doctor.findMany({
+			where:{
+				AND: andConditions.length > 0 ? andConditions : undefined
+			},
+			take: limit,
+			skip: skip,
+			orderBy:{
+				 [sortBy]: sortOrder
+			},
+			include:{
+				 user:{
+					 omit : {
+						password: true
+					 }
+				 },
+				
+			}
+	});
+
+	const totalDoctorCount = await prisma.doctor.count({
+		 where:{
+			 AND:andConditions
+		 }
+	})
+
+	return {
+		 data: allDoctor,
+		 meta:{
+			 page: page,
+			 limit: limit,
+			 total: totalDoctorCount,
+			 totalPage : Math.ceil(totalDoctorCount/limit)
+
+		 }
+	}
+};
 
 export const DoctorServices = {
 	applyAsDoctor,
 	verifyDoctorEmail,
 	approvedDoctor,
-	gellAllDoctors
-	
+	gellAllDoctors,
 };

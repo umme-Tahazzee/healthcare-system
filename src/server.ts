@@ -17,10 +17,9 @@ const main = async () => {
 	try {
 		await prisma.$connect();
 		console.log("Connected to the database successfully.");
+
 		await redisClient.connect();
-		app.listen(config.port, () => {
-			console.log(`Server running on port ${config.port}`);
-		});
+		console.log("Connected to Redis successfully.");
 
 		await transporter.verify();
 		console.log("nodemailer connected successfully");

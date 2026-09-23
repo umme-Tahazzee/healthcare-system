@@ -141,7 +141,7 @@ export const seedTeasterDoctor = async () => {
 					 create:{
 						 email,
 						 name, 
-                         experienceYear : 5,
+                         experienceYears : 5,
 						 qualifications : 'MBBS',
 						 licenseNumber : 'BMDC0000',
 						 specialization : "Neurology"

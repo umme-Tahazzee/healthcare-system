@@ -1,163 +1,177 @@
-// biome-ignore assist/source/organizeImports: <explanation>
-import { Role } from "../../generated/prisma/enums";
+import bcrypt from "bcryptjs";
+import httpStatus from "http-status";
+import { DoctorVerificationStatus, Role } from "../../generated/prisma/enums";
 import config from "../config";
 import { prisma } from "../lib/prisma";
-import bcrypt from "bcryptjs";
+import { AppError } from "./AppError";
 
 export const seedSuperAdmin = async () => {
 	try {
-		const isSupperAdmin = await prisma.user.findFirst({
+		const isSuperAdminExist = await prisma.user.findFirst({
 			where: {
 				role: Role.SUPER_ADMIN,
 			},
 		});
 
-		if (isSupperAdmin) {
-			console.log("super admin already exits");
-            return;
+		if (isSuperAdminExist) {
+			console.log("Super Admin Already Exists!");
+			return;
 		}
 
-       
-		const name = config.super_admin_name 
-		const email = config.super_admin_email 
-		const password = config.super_admin_password
+		const name = config.super_admin_name;
+		const email = config.super_admin_email;
+		const password = config.super_admin_password;
 
-         if(!name || !password || !email) {
-             throw new Error("Super Admin name, email password missing...")
-        }
-        
-		const hashPassword = await bcrypt.hash(
+		if (!name || !email || !password) {
+			throw new AppError(
+				httpStatus.INTERNAL_SERVER_ERROR,
+				"Super Admin Name , Email, Password Missing In Env File!!!",
+			);
+		}
+
+		const hashedPassword = await bcrypt.hash(
 			password,
 			Number(config.bcrypt_salt_rounds),
 		);
+
 		const superAdmin = await prisma.user.create({
 			data: {
 				name,
 				email,
-				password: hashPassword,
+				password: hashedPassword,
 				role: Role.SUPER_ADMIN,
 				needPasswordChange: false,
 				emailVerified: true,
 			},
 		});
-        console.log(superAdmin);
-        
+
+		console.log("Super Admin Created : ", superAdmin);
 	} catch (error) {
-         console.log("error seeding super admin :", error);
-         await prisma.user.delete({
-            where : {
-                  email : config.super_admin_email
-            }
-         })
-    }
+		console.log("Error Seeding Super Admin : ", error);
+
+		await prisma.user.delete({
+			where: {
+				email: config.super_admin_email,
+			},
+		});
+	}
 };
 
+//create tester admin
 
-
-export const seedTeasterAdmin = async () => {
+export const seedTesterAdmin = async () => {
 	try {
-		const isSeedTeasterAdmin = await prisma.user.findUnique({
+		const isTesterAdminExist = await prisma.user.findUnique({
 			where: {
-				email : config.tester_admin_email
+				email: config.tester_admin_email,
 			},
 		});
 
-		if (isSeedTeasterAdmin) {
-			console.log("Tester admin already exits");
-            return;
+		if (isTesterAdminExist) {
+			console.log("Tester Admin Already Exists!");
+			return;
 		}
 
-       
-		const name = config.tester_admin_name
-		const email = config.tester_admin_email 
-		const password = config.tester_admin_password
+		const name = config.tester_admin_name;
+		const email = config.tester_admin_email;
+		const password = config.tester_admin_password;
 
-         if(!name || !password || !email) {
-             throw new Error("Tester Admin name, email password missing...")
-        }
-        
-		const hashPassword = await bcrypt.hash(
+		if (!name || !email || !password) {
+			throw new AppError(
+				httpStatus.INTERNAL_SERVER_ERROR,
+				"Tester Admin Name , Email, Password Missing In Env File!!!",
+			);
+		}
+
+		const hashedPassword = await bcrypt.hash(
 			password,
 			Number(config.bcrypt_salt_rounds),
 		);
+
 		const testerAdmin = await prisma.user.create({
 			data: {
 				name,
 				email,
-				password: hashPassword,
+				password: hashedPassword,
 				role: Role.ADMIN,
 				needPasswordChange: false,
 				emailVerified: true,
 			},
 		});
-        console.log(testerAdmin);
-        
+
+		console.log("Tester Admin Created : ", testerAdmin);
 	} catch (error) {
-         console.log("error seeding testing admin :", error);
-         await prisma.user.delete({
-            where : {
-                  email : config.tester_admin_email
-            }
-         })
-    }
+		console.log("Error Seeding Tester Admin : ", error);
+
+		await prisma.user.delete({
+			where: {
+				email: config.tester_admin_email,
+			},
+		});
+	}
 };
 
+// create tester doctor
 
-export const seedTeasterDoctor = async () => {
+export const seedTesterDoctor = async () => {
 	try {
-		const isSeedTeasterDoctor = await prisma.user.findUnique({
+		const isTesterDoctorExist = await prisma.user.findUnique({
 			where: {
-				email : config.tester_doctor_email
+				email: config.tester_doctor_email,
 			},
 		});
 
-		if (isSeedTeasterDoctor) {
-			console.log("Tester admin already exits");
-            return;
+		if (isTesterDoctorExist) {
+			console.log("Tester Doctor Already Exists!");
+			return;
 		}
 
-       
-		const name = config.tester_doctor_name
-		const email = config.tester_doctor_email 
-		const password = config.tester_doctor_password
+		const name = config.tester_doctor_name;
+		const email = config.tester_doctor_email;
+		const password = config.tester_doctor_password;
 
-         if(!name || !password || !email) {
-             throw new Error("Doctor  name, email password missing...")
-        }
-        
-		const hashPassword = await bcrypt.hash(
+		if (!name || !email || !password) {
+			throw new AppError(
+				httpStatus.INTERNAL_SERVER_ERROR,
+				"Tester Doctor Name , Email, Password Missing In Env File!!!",
+			);
+		}
+
+		const hashedPassword = await bcrypt.hash(
 			password,
 			Number(config.bcrypt_salt_rounds),
 		);
-		const doctorAdmin = await prisma.user.create({
+
+		const testerDoctor = await prisma.user.create({
 			data: {
 				name,
 				email,
-				password: hashPassword,
+				password: hashedPassword,
 				role: Role.DOCTOR,
 				needPasswordChange: false,
 				emailVerified: true,
 				doctor: {
-					 create:{
-						 email,
-						 name, 
-                         experienceYears : 5,
-						 qualifications : 'MBBS',
-						 licenseNumber : 'BMDC0000',
-						 specialization : "Neurology"
-
-					 }
-				}
+					create: {
+						email,
+						name,
+						experienceYears: 5,
+						licenseNumber: "BMDC0000",
+						qualifications: "MBBS",
+						specialization: "Neurology",
+						verificationStatus: DoctorVerificationStatus.APPROVED,
+					},
+				},
 			},
 		});
-        console.log(doctorAdmin);
-        
+
+		console.log("Tester Doctor Created : ", testerDoctor);
 	} catch (error) {
-         console.log("error seeding testing admin :", error);
-         await prisma.user.delete({
-            where : {
-                  email : config.tester_doctor_email
-            }
-         })
-    }
+		console.log("Error Seeding Tester Doctor : ", error);
+
+		await prisma.user.delete({
+			where: {
+				email: config.tester_doctor_email,
+			},
+		});
+	}
 };

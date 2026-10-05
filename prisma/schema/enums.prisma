@@ -18,31 +18,34 @@ enum Gender {
 }
 
 enum AuthProvider {
-   GOOGLE 
-   CREDENTIAL
+  GOOGLE
+  CREDENTIAL
 }
 
-
-enum AppoinmentStatus {
+enum AppointmentStatus {
   PENDING
-  CONFRIMED
+  CONFIRMED
   CANCELLED
   ONGOING
   COMPLETED
-
 }
 
 enum PaymentStatus {
-   UNPAID
-   PAID
-   FAILED
-   CANCELLED
-   REFUNDED
+  UNPAID
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
 }
-
 
 enum DoctorVerificationStatus {
-      PENDING
-      APPROVED
-      REJECTED
+  PENDING
+  APPROVED
+  REJECTED
 }
+
+enum ScheduleStatus {
+  DRAFT
+  PUBLISHED
+}
+

@@ -1,22 +1,16 @@
-// auth.route.ts
-// biome-ignore assist/source/organizeImports: <explanation>
 import { Router } from "express";
-import { UserController } from "./user.controller";
+import { Role } from "../../../generated/prisma/enums";
 import { upload } from "../../lib/multer";
 import { auth } from "../../middleware/checkAuth";
-import { Role } from "../../../generated/prisma/enums";
-
+import { UserController } from "./user.controller";
 
 const router = Router();
 
+router.patch(
+	"/profile-image",
+	auth(Role.SUPER_ADMIN, Role.ADMIN, Role.DOCTOR, Role.PATIENT),
+	upload.single("profileImage"),
+	UserController.uploadProfileImage,
+);
 
-router.patch('/profile-image',
-    auth(Role.SUPER_ADMIN, Role.ADMIN, Role.DOCTOR, Role.PATIENT),
-    upload.single("profileImage"),
-    UserController.uploadProfileImage)
-
-
-
-
-
-export const UsersRoutes = router;
+export const UserRoutes = router;

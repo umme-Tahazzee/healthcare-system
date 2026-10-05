@@ -8,7 +8,7 @@ model Doctor {
   specialization  String
   licenseNumber   String @unique
   qualifications String
-  experienceYears Int? @default(0)
+  experienceYears Int
 
   bio             String?
   consultationFee Decimal? @db.Decimal(10, 2)
@@ -33,6 +33,9 @@ model Doctor {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  schedules Schedule[]
+  appointments Apppointment[]
 
   @@index([email], name: "idx_doctor_email")
   @@map("doctors")

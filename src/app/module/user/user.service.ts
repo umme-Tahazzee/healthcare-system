@@ -1,63 +1,94 @@
-import { UploadApiResponse } from "cloudinary";
+import type { UploadApiResponse } from "cloudinary";
 import { cloudinary } from "../../lib/cloudinary";
 import { prisma } from "../../lib/prisma";
 
 const uploadProfileImage = async (buffer: Buffer, userId: string) => {
-    // Step 1: Purono user data ber kora (purono image thakle delete korar jonno)
-    const existingUser = await prisma.user.findUnique({
-        where: { id: userId },
-    });
+	// const cloudinaryResult = cloudinary.uploader.upload_stream(
+	//     {
+	//         resource_type : "auto"
+	//     },
 
-    if (!existingUser) {
-        throw new Error("User not found");
-    }
+	//     async (error, result) => {
+	//         if(error){
+	//             console.log(error);
+	//             throw new Error(error.message)
+	//         }
 
-    // Step 2: Cloudinary te upload kora, Promise diye wrap kore await-able banano
-    const cloudinaryResult = await new Promise<UploadApiResponse>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-            { resource_type: "auto" },
-            (error, result) => {
-                if (error) {
-                    console.log(error);
-                    return reject(new Error(error.message));
-                }
+	//         console.log(result, "result");
 
-                if (!result) {
-                    return reject(new Error("No result returned from cloudinary"));
-                }
+	//         const updatedUser = await prisma.user.update({
+	//             where : {
+	//                 id : userId
+	//             },
 
-                resolve(result);
-            }
-        );
-        stream.end(buffer);
-    });
+	//             data: {
+	//                 imageUrl : result?.secure_url,
+	//                 imagePublicId : result?.public_id
+	//             }
+	//         })
 
-    // Step 3: DB update kora notun image URL diye
-    const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-            imageUrl: cloudinaryResult.secure_url,
-            imagePublicId: cloudinaryResult.public_id,
-        },
-        omit:{
-            password: true
-        }
-    });
+	//         console.log(updatedUser);
 
-    // Step 4: Purono image thakle Cloudinary theke delete kora
-    if (existingUser.imagePublicId) {
-        try {
-            await cloudinary.uploader.destroy(existingUser.imagePublicId);
-        } catch (error) {
-            // Delete fail hole pura operation fail koraite chai na,
-            // tai shudhu log kore aage bere jabo
-            console.log("Failed to delete old image:", error);
-        }
-    }
+	//         // return result
+	//     }
+	// ).end(buffer)
 
-    return updatedUser;
+	const currentUser = await prisma.user.findUnique({
+		where: {
+			id: userId,
+		},
+		select: {
+			imagePublicId: true,
+			imageUrl: true,
+		},
+	});
+
+	const cloudinaryResult = await new Promise<UploadApiResponse>(
+		(resolve, reject) => {
+			cloudinary.uploader
+				.upload_stream(
+					{
+						resource_type: "auto",
+					},
+
+					async (error, result) => {
+						if (error) {
+							return reject(error);
+						}
+
+						if (!result) {
+							return reject(new Error("No result returned from Cloudinary"));
+						}
+
+						resolve(result);
+					},
+				)
+				.end(buffer);
+		},
+	);
+
+	const updatedUser = await prisma.user.update({
+		where: {
+			id: userId,
+		},
+
+		data: {
+			imageUrl: cloudinaryResult.secure_url,
+			imagePublicId: cloudinaryResult.public_id,
+		},
+
+		omit: {
+			password: true,
+		},
+	});
+
+	if (currentUser?.imagePublicId && currentUser.imageUrl) {
+		await cloudinary.uploader.destroy(currentUser.imagePublicId);
+	}
+
+	return updatedUser;
 };
 
-export const UserService = {
-    uploadProfileImage,
+export const UserServices = {
+	uploadProfileImage,
 };

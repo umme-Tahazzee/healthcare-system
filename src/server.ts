@@ -1,14 +1,13 @@
-
 import app from "./app";
 import config from "./app/config";
-import { deleteUnverifiedDoctor } from "./app/lib/cron";
+import { deleteUnverifiedDoctors } from "./app/lib/cron";
 import { transporter } from "./app/lib/nodemailer";
 import { prisma } from "./app/lib/prisma";
 import { redisClient } from "./app/lib/redis";
 import {
 	seedSuperAdmin,
-	seedTeasterAdmin,
-	seedTeasterDoctor,
+	seedTesterAdmin,
+	seedTesterDoctor,
 } from "./app/utils/seed";
 
 const PORT = config.port;
@@ -19,17 +18,17 @@ const main = async () => {
 		console.log("Connected to the database successfully.");
 
 		await redisClient.connect();
-		console.log("Connected to Redis successfully.");
+		console.log("Redis Connected Successfully.");
 
 		await transporter.verify();
-		console.log("nodemailer connected successfully");
+		console.log("Nodemailer Connected Successfully.");
 
 		await seedSuperAdmin();
-		await seedTeasterAdmin();
-		await seedTeasterDoctor();
-		await deleteUnverifiedDoctor()
+		await seedTesterAdmin();
+		await seedTesterDoctor();
 
-		
+		await deleteUnverifiedDoctors();
+
 		app.listen(PORT, () => {
 			console.log(`Server is running on port ${PORT}`);
 		});

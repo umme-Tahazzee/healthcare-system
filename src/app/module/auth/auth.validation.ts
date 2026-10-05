@@ -1,51 +1,63 @@
 import z from "zod";
 
-const patientRegistrationZodSchema = z.object({
-  name: z
-    .string({
-      error: "Name is required",
-    })
-    .trim()
-    .min(3, "Name must be at least 3 characters")
-    .max(50, "Name must be at most 50 characters"),
+const PatientRegistrationZodSchema = z.object({
+	name: z
+		.string("Not A String!!!!!")
+		.min(3, "Name must atleast 3 characters long!!!")
+		.max(10),
+	email: z.email("Not email!!"),
+	password: z
+		.string()
+		.min(8, "Password Must Minimum 8 Characters Long.")
+		.regex(/[a-z]/, "Password must contain atleast 1 Lowercase Letter")
+		.regex(/[A-Z]/, "Password must contain atleast 1 Uppercase Letter")
 
-  email: z
-    .email("Please provide a valid email address")
-    .trim()
-    .toLowerCase(),
-
-  password: z
-    .string({
-      error: "Password is required",
-    })
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password must be at most 20 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-    ),
-
-  patient: z.object({
-    contactNumber: z
-      .string()
-      .trim()
-      .regex(
-        /^01[3-9]\d{8}$/,
-        "Please provide a valid Bangladeshi phone number"
-      )
-      .optional(),
-
-    age: z
-      .number({
-        error: "Age is required",
-      })
-      .int("Age must be a whole number")
-      .min(1, "Age must be at least 1")
-      .max(120, "Age must be at most 120"),
-  }),
+		.regex(/[0-9]/, "Password must contain atleast 1 Number")
+		.regex(/[^A-Za-z0-9]/, "Password must contain atleast 1 Special Character"),
+	patient: z
+		.object({
+			contactNumber: z.string().optional(),
+		})
+		.optional(),
+});
+const PatientEmailVerifyZodSchema = z.object({
+	email: z.email("Not email!!"),
+	otp: z.string().length(6),
 });
 
+const LoginZodSchema = z.object({
+	email: z.email(),
+	password: z
+		.string()
+		.min(8, "Password Must Minimum 8 Characters Long.")
+		.regex(/[a-z]/, "Password must contain atleast 1 Lowercase Letter")
+		.regex(/[A-Z]/, "Password must contain atleast 1 Uppercase Letter")
 
-export const userValidation = {
-    patientRegistrationZodSchema
-}
+		.regex(/[0-9]/, "Password must contain atleast 1 Number")
+		.regex(/[^A-Za-z0-9]/, "Password must contain atleast 1 Special Character"),
+});
+
+const ForgotPasswordZodSchema = z.object({
+	email: z.email(),
+});
+
+const ResetPasswordZodSchema = z.object({
+	email: z.email(),
+	newPassword: z
+		.string()
+		.min(8, "Password Must Minimum 8 Characters Long.")
+		.regex(/[a-z]/, "Password must contain atleast 1 Lowercase Letter")
+		.regex(/[A-Z]/, "Password must contain atleast 1 Uppercase Letter")
+
+		.regex(/[0-9]/, "Password must contain atleast 1 Number")
+		.regex(/[^A-Za-z0-9]/, "Password must contain atleast 1 Special Character"),
+	otp: z.string().length(6),
+});
+
+export const UserValidation = {
+	PatientRegistrationZodSchema,
+	PatientEmailVerifyZodSchema,
+	LoginZodSchema,
+	ForgotPasswordZodSchema,
+	ResetPasswordZodSchema,
+};

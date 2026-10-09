@@ -254,6 +254,11 @@ const loginUser = async (payload: ILoginUserPayload) => {
     user.password as string,
   );
 
+  console.log(password, 'password');
+  console.log(isPasswordMatched, 'ispassword');
+
+  
+
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
   }

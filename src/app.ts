@@ -23,12 +23,13 @@ import { UserRoutes } from "./app/module/user/user.route";
 const app: Application = express();
 
 app.use(
-	cors({
-		origin: config.frontend_url,
-		credentials: true,
-	}),
+  cors({
+    origin: ["http://localhost:3000"], 
+    credentials: true,              
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
 );
-
 // Enable URL-encoded form data parsing
 app.use(express.urlencoded({ extended: true }));
 

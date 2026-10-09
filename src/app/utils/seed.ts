@@ -13,10 +13,6 @@ export const seedSuperAdmin = async () => {
 			},
 		});
 
-		if (isSuperAdminExist) {
-			console.log("Super Admin Already Exists!");
-			return;
-		}
 
 		const name = config.super_admin_name;
 		const email = config.super_admin_email;
@@ -31,7 +27,7 @@ export const seedSuperAdmin = async () => {
 
 		const hashedPassword = await bcrypt.hash(
 			password,
-			Number(config.bcrypt_salt_rounds),
+			Number(config.bcrypt_salt_rounds) | 10,
 		);
 
 		const superAdmin = await prisma.user.create({
